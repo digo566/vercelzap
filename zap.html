@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automação WhatsApp - Restaurante</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #25D366;
+            background: white;
+            border-bottom-color: #25D366;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #25D366;
+        }
+
+        .section h2 {
+            color: #128C7E;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #25D366;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .qr-container img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .automation-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #25D366;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .automation-card h3 {
+            color: #128C7E;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .automation-card .info {
+            margin: 8px 0;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .automation-card .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .contacts-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .contact-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .contact-item:hover {
+            background: #e9ecef;
+        }
+
+        .contact-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .contact-number {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #1976D2;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-box.warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .info-box.warning p {
+            color: #856404;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        .reply-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #2196F3;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .reply-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .reply-item-keyword {
+            font-weight: 600;
+            color: #2196F3;
+        }
+
+        .reply-item-response {
+            color: #666;
+            font-size: 14px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-top: 5px;
+            white-space: pre-wrap;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .replies-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: 1px solid #e0e0e0;
+            }
+            
+            .automation-card .actions,
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn-small,
+            .btn-group .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Automação WhatsApp - Restaurante</h1>
+            <p>Gerencie e automatize mensagens para TODOS os seus clientes</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('connection')">🔌 Conexão</div>
+            <div class="tab" onclick="switchTab('automation')">🤖 Automação Global</div>
+            <div class="tab" onclick="switchTab('bulk')">📤 Envio em Massa</div>
+        </div>
+
+        <!-- ABA CONEXÃO -->
+        <div class="tab-content active" id="connection-content">
+            <div class="section">
+                <h2>📱 Conexão WhatsApp</h2>
+                <div id="status" class="status disconnected">
+                    Desconectado - Clique em "Conectar WhatsApp" para começar
+                </div>
+                <div class="qr-container" id="qrContainer">
+                    <p>Clique em "Conectar WhatsApp" para ver o QR Code</p>
+                </div>
+                <button class="btn" id="connectBtn" onclick="connectWhatsApp()">
+                    Conectar WhatsApp
+                </button>
+                <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectWhatsApp()" style="display: none; margin-top: 10px;">
+                    Desconectar
+                </button>
+            </div>
+        </div>
+
+        <!-- ABA AUTOMAÇÃO GLOBAL -->
+        <div class="tab-content" id="automation-content">
+            <div class="info-box warning">
+                <p><strong>🌍 Automação Global - Para TODOS os Contatos</strong></p>
+                <p>Esta automação funcionará para QUALQUER pessoa que enviar mensagem no seu WhatsApp!</p>
+                <p>Não é necessário selecionar contatos - funciona automaticamente para todos! ✨</p>
+            </div>
+
+            <div class="section">
+                <h2>🤖 Configurar Automação Global</h2>
+                
+                <div class="form-group">
+                    <label for="welcomeMessage">Mensagem de Boas-Vindas (opcional):</label>
+                    <textarea id="welcomeMessage" placeholder="Ex: Olá! Bem-vindo ao Restaurante XYZ! 😊
+
+Escolha uma opção:
+1️⃣ Ver Cardápio
+2️⃣ Fazer Pedido
+3️⃣ Status do Pedido
+4️⃣ Falar com Atendente"></textarea>
+                    <small>💡 Esta mensagem NÃO é enviada automaticamente. Ela serve apenas como referência do que você enviou manualmente aos clientes.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>🤖 Respostas Automáticas (obrigatório):</label>
+                    <small style="margin-bottom: 10px;">Configure as respostas que o bot enviará quando receber palavras-chave específicas</small>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="replyKeyword" placeholder="Palavra-chave (ex: 1, cardápio)" style="margin-bottom: 0;">
+                        <textarea id="replyResponse" placeholder="Resposta automática..." style="margin-bottom: 0; min-height: 40px; height: 40px;"></textarea>
+                        <button class="btn btn-secondary btn-small" onclick="addAutoReply()" style="margin: 0;">
+                            ➕
+                        </button>
+                    </div>
+                    <small>💡 Dica: Use "1,cardapio,cardápio" para responder quando cliente digitar qualquer uma dessas opções</small>
+                    
+                    <div class="replies-list" id="repliesList">
+                        <p style="text-align: center; color: #999; padding: 20px;">Nenhuma resposta automática configurada</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inactivityMessage">Mensagem de Inatividade (opcional):</label>
+                    <textarea id="inactivityMessage" placeholder="Ex: Ainda está aí? Posso ajudar com algo mais? 🤔"></textarea>
+                    <small>Enviada se o cliente não responder após receber uma resposta automática</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="inactivityTime">Tempo de Espera (segundos):</label>
+                    <input type="number" id="inactivityTime" value="60" min="10" placeholder="Ex: 60">
+                    <small>Tempo que o sistema aguarda antes de enviar a mensagem de inatividade</small>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>ℹ️ Como funciona:</strong></p>
+                    <p>• Quando QUALQUER pessoa enviar mensagem, o bot procura por palavras-chave</p>
+                    <p>• Se encontrar uma palavra-chave, envia a resposta automática configurada</p>
+                    <p>• Se o cliente não responder, envia a mensagem de inatividade</p>
+                    <p>• Funciona 24/7 para todos os contatos automaticamente! 🚀</p>
+                </div>
+
+                <button class="btn" onclick="createGlobalAutomation()" id="createAutoBtn" disabled>
+                    🚀 Ativar Automação Global
+                </button>
+            </div>
+
+            <div class="section">
+                <h2>📊 Status da Automação</h2>
+                <div id="globalAutomationStatus">
+                    <div class="empty-state">
+                        <p>Nenhuma automação ativa</p>
+                        <small style="display: block; margin-top: 10px;">Configure e ative uma automação acima</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA ENVIO EM MASSA -->
+        <div class="tab-content" id="bulk-content">
+            <div class="section">
+                <h2>✉️ Mensagem para Envio</h2>
+                <div class="form-group">
+                    <label for="bulkMessage">Digite a mensagem:</label>
+                    <textarea id="bulkMessage" placeholder="Ex: Olá! Temos uma promoção especial hoje! 🍕
+
+Digite 1 para ver o cardápio! 😊"></textarea>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>👥 Selecionar Destinatários</h2>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="selectAllContacts()">
+                        ✅ Selecionar Todos
+                    </button>
+                    <button class="btn btn-secondary" onclick="deselectAllContacts()">
+                        ❌ Desmarcar Todos
+                    </button>
+                </div>
+                <div class="contacts-container" id="bulkContactsContainer">
+                    <p style="text-align: center; color: #999; padding: 20px;">
+                        Conecte-se ao WhatsApp para carregar os contatos
+                    </p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🚀 Enviar</h2>
+                <div class="info-box">
+                    <p><strong>⚠️ Importante:</strong></p>
+                    <p>• Intervalo de 10 segundos entre cada mensagem</p>
+                    <p>• Envie uma mensagem de boas-vindas com as opções do menu</p>
+                    <p>• Depois ative a Automação Global para respostas automáticas</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="sendBulkMessages()" id="sendBulkBtn" disabled>
+                        Enviar para Selecionados
+                    </button>
+                    <button class="btn" onclick="sendToAllContacts()" id="sendAllBtn" disabled>
+                        📢 Enviar para TODOS
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+        let allContacts = [];
+        let selectedContacts = new Set();
+        let autoReplies = [];
+        let globalAutomationActive = false;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tab + '-content').classList.add('active');
+
+            if (tab === 'automation' && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'getGlobalAutomation' }));
+            }
+        }
+
+        function connectWhatsApp() {
+            const statusDiv = document.getElementById('status');
+            const qrContainer = document.getElementById('qrContainer');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+
+            if (ws && ws.readyState !== WebSocket.CLOSED) {
+                ws.close();
+            }
+
+            statusDiv.className = 'status connecting';
+            statusDiv.textContent = 'Conectando ao servidor...';
+            connectBtn.style.display = 'none';
+
+            try {
+                ws = new WebSocket('ws://localhost:3000');
+            } catch (error) {
+                statusDiv.className = 'status disconnected';
+                statusDiv.textContent = '❌ Erro ao criar conexão WebSocket: ' + error.message;
+                connectBtn.style.display = 'block';
+                return;
+            }
+
+            ws.onopen = function() {
+                console.log('WebSocket conectado!');
+                statusDiv.className = 'status connecting';
+                statusDiv.textContent = 'Conectado! Aguardando QR Code...';
+                qrContainer.innerHTML = '<p style="color: #666;">Aguardando QR Code...</p>';
+                try {
+                    ws.send(JSON.stringify({ action: 'connect' }));
+                } catch (error) {
+                    console.error('Erro ao enviar mensagem:', error);
+                }
+            };
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'qr') {
+                    qrContainer.innerHTML = `<img src="${data.qr}" alt="QR Code">`;
+                    statusDiv.className = 'status connecting';
+                    statusDiv.textContent = 'Escaneie o QR Code com seu WhatsApp';
+                } else if (data.type === 'ready') {
+                    statusDiv.className = 'status connected';
+                    statusDiv.textContent = '✅ Conectado ao WhatsApp! Carregando...';
+                    isConnected = true;
+                    connectBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'block';
+                    document.getElementById('sendBulkBtn').disabled = false;
+                    document.getElementById('sendAllBtn').disabled = false;
+                    document.getElementById('createAutoBtn').disabled = false;
+                    qrContainer.innerHTML = '<p style="color: green; font-weight: bold;">✅ WhatsApp conectado com sucesso!</p>';
+                } else if (data.type === 'contacts') {
+                    allContacts = data.contacts;
+                    displayContactsForBulk(data.contacts);
+                    statusDiv.textContent = `✅ Conectado! (${data.contacts.length} contatos)`;
+                } else if (data.type === 'error') {
+                    statusDiv.className = 'status disconnected';
+                    statusDiv.textContent = '❌ Erro: ' + data.message;
+                } else if (data.type === 'globalAutomationStarted') {
+                    alert('✅ Automação Global Ativada! Funciona para TODOS os contatos! 🌍');
+                    globalAutomationActive = true;
+                    displayGlobalAutomation(data.automation);
+                } else if (data.type === 'globalAutomationStopped') {
+                    alert('⏹️ Automação Global Desativada!');
+                    globalAutomationActive = false;
+                    displayGlobalAutomation(null);
+                } else if (data.type === 'globalAutomation') {
+                    if (data.automation) {
+                        globalAutomationActive = true;
+                        displayGlobalAutomation(data.automation);
+                    }
+                } else if (data.type === 'messageReceived') {
+                    console.log('Mensagem recebida:', data);
+                } else if (data.type === 'autoReplyTriggered') {
+                    console.log('Resposta automática enviada:', data);
+                } else if (data.type === 'inactivityMessageSent') {
+                    console.log('Mensagem de inatividade enviada:', data);
+                } else if (data.type === 'messageStatus') {
+                    if (data.status === 'completed') {
+                        alert(`✅ Envio concluído! ${data.sent} de ${data.total} mensagens enviadas.`);
+                        document.getElementById('sendBulkBtn').disabled = false;
+                        document.getElementById('sendBulkBtn').textContent = 'Enviar para Selecionados';
+                        document.getElementById('sendAllBtn').disabled = false;
+                        document.getElementById('sendAllBtn').textContent = '📢 Enviar para TODOS';
+                    } else if (data.status === 'error') {
+                        alert('❌ ' + data.message);
+                    }
+                }
+            };
+
+            ws.onerror = function(error) {
+                statusDiv.className = 'status disconnected';
+                statusDiv.textContent = '❌ Erro ao conectar. Verifique se o servidor está rodando!';
+                connectBtn.style.display = 'block';
+            };
+
+            ws.onclose = function() {
+                statusDiv.className = 'status disconnected';
+                statusDiv.textContent = 'Desconectado do servidor';
+                connectBtn.style.display = 'block';
+                disconnectBtn.style.display = 'none';
+                isConnected = false;
+                globalAutomationActive = false;
+                document.getElementById('sendBulkBtn').disabled = true;
+                document.getElementById('sendAllBtn').disabled = true;
+                document.getElementById('createAutoBtn').disabled = true;
+            };
+        }
+
+        function disconnectWhatsApp() {
+            if (ws) {
+                ws.send(JSON.stringify({ action: 'disconnect' }));
+                ws.close();
+            }
+        }
+
+        function displayContactsForBulk(contacts) {
+            const container = document.getElementById('bulkContactsContainer');
+            
+            if (contacts.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Nenhum contato encontrado</p>';
+                return;
+            }
+
+            container.innerHTML = contacts.map(contact => `
+                <div class="contact-item" onclick="toggleBulkContact('${contact.number}')">
+                    <input type="checkbox" id="bulk_${contact.number}" onchange="event.stopPropagation(); toggleBulkContact('${contact.number}')">
+                    <div class="contact-info">
+                        <div class="contact-name">${contact.name || 'Sem nome'}</div>
+                        <div class="contact-number">${formatNumber(contact.number)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleBulkContact(contactNumber) {
+            const checkbox = document.getElementById(`bulk_${contactNumber}`);
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                
+                if (checkbox.checked) {
+                    selectedContacts.add(contactNumber);
+                } else {
+                    selectedContacts.delete(contactNumber);
+                }
+            }
+        }
+
+        function selectAllContacts() {
+            allContacts.forEach(contact => {
+                selectedContacts.add(contact.number);
+                const checkbox = document.getElementById(`bulk_${contact.number}`);
+                if (checkbox) checkbox.checked = true;
+            });
+            alert(`✅ ${allContacts.length} contatos selecionados!`);
+        }
+
+        function deselectAllContacts() {
+            selectedContacts.clear();
+            allContacts.forEach(contact => {
+                const checkbox = document.getElementById(`bulk_${contact.number}`);
+                if (checkbox) checkbox.checked = false;
+            });
+        }
+
+        function addAutoReply() {
+            const keyword = document.getElementById('replyKeyword').value.trim();
+            const response = document.getElementById('replyResponse').value.trim();
+
+            if (!keyword || !response) {
+                alert('❌ Preencha a palavra-chave e a resposta!');
+                return;
+            }
+
+            autoReplies.push({ keyword, response });
+            document.getElementById('replyKeyword').value = '';
+            document.getElementById('replyResponse').value = '';
+            displayAutoReplies();
+        }
+
+        function removeAutoReply(index) {
+            autoReplies.splice(index, 1);
+            displayAutoReplies();
+        }
+
+        function displayAutoReplies() {
+            const container = document.getElementById('repliesList');
+            
+            if (autoReplies.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Nenhuma resposta automática configurada</p>';
+                return;
+            }
+
+            container.innerHTML = autoReplies.map((reply, index) => `
+                <div class="reply-item">
+                    <div class="reply-item-header">
+                        <span class="reply-item-keyword">🔑 ${reply.keyword}</span>
+                        <button class="btn-remove" onclick="removeAutoReply(${index})">🗑️ Remover</button>
+                    </div>
+                    <div class="reply-item-response">${reply.response}</div>
+                </div>
+            `).join('');
+        }
+
+        function createGlobalAutomation() {
+            if (!isConnected) {
+                alert('❌ Conecte-se ao WhatsApp primeiro!');
+                return;
+            }
+
+            if (autoReplies.length === 0) {
+                alert('❌ Adicione pelo menos uma resposta automática!');
+                return;
+            }
+
+            const welcomeMessage = document.getElementById('welcomeMessage').value.trim();
+            const inactivityMessage = document.getElementById('inactivityMessage').value.trim();
+            const inactivityTime = parseInt(document.getElementById('inactivityTime').value);
+
+            const automation = {
+                welcomeMessage: welcomeMessage,
+                inactivityMessage: inactivityMessage,
+                inactivityTime: inactivityTime || 0,
+                autoReplies: autoReplies
+            };
+
+            ws.send(JSON.stringify({
+                action: 'startGlobalAutomation',
+                automation: automation
+            }));
+        }
+
+        function stopGlobalAutomation() {
+            if (confirm('Tem certeza que deseja desativar a automação global?')) {
+                ws.send(JSON.stringify({
+                    action: 'stopGlobalAutomation'
+                }));
+            }
+        }
+
+        function displayGlobalAutomation(automation) {
+            const container = document.getElementById('globalAutomationStatus');
+            
+            if (!automation) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>Nenhuma automação ativa</p>
+                        <small style="display: block; margin-top: 10px;">Configure e ative uma automação acima</small>
+                    </div>
+                `;
+                return;
+            }
+
+            const repliesHtml = automation.autoReplies && automation.autoReplies.length > 0 
+                ? `<div class="info" style="margin-top: 15px;">
+                       <strong style="color: #128C7E;">🤖 Respostas Automáticas Configuradas:</strong>
+                       ${automation.autoReplies.map(r => `
+                           <div style="background: white; padding: 10px; margin: 8px 0; border-radius: 5px; border-left: 3px solid #2196F3;">
+                               <div style="font-weight: 600; color: #2196F3; margin-bottom: 5px;">🔑 "${r.keyword}"</div>
+                               <div style="color: #666; font-size: 13px; white-space: pre-wrap;">💬 ${r.response}</div>
+                           </div>
+                       `).join('')}
+                   </div>`
+                : '';
+            
+            container.innerHTML = `
+                <div class="automation-card">
+                    <h3>🌍 Automação Global ATIVA</h3>
+                    <div class="info" style="font-size: 15px; color: #25D366; font-weight: 600;">
+                        ✅ Funcionando para TODOS os contatos!
+                    </div>
+                    ${automation.welcomeMessage ? `<div class="info" style="margin-top: 10px;"><strong>📝 Mensagem de Referência:</strong><br>"${automation.welcomeMessage.substring(0, 100)}${automation.welcomeMessage.length > 100 ? '...' : ''}"</div>` : ''}
+                    ${repliesHtml}
+                    ${automation.inactivityMessage ? `<div class="info" style="margin-top: 10px;"><strong>⏰ Inatividade (${automation.inactivityTime}s):</strong><br>"${automation.inactivityMessage}"</div>` : ''}
+                    <span class="badge badge-success">✓ Ativa desde ${new Date(automation.startedAt).toLocaleTimeString()}</span>
+                    <div class="actions">
+                        <button class="btn btn-danger" onclick="stopGlobalAutomation()">
+                            ⏹️ Desativar Automação Global
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function sendBulkMessages() {
+            const message = document.getElementById('bulkMessage').value.trim();
+            
+            if (!message) {
+                alert('❌ Digite uma mensagem!');
+                return;
+            }
+
+            if (selectedContacts.size === 0) {
+                alert('❌ Selecione pelo menos um contato!');
+                return;
+            }
+
+            if (!isConnected) {
+                alert('❌ Conecte-se ao WhatsApp primeiro!');
+                return;
+            }
+
+            if (confirm(`Enviar mensagem para ${selectedContacts.size} contato(s)?`)) {
+                ws.send(JSON.stringify({
+                    action: 'sendMessages',
+                    clients: Array.from(selectedContacts),
+                    message: message
+                }));
+
+                document.getElementById('sendBulkBtn').disabled = true;
+                document.getElementById('sendBulkBtn').textContent = 'Enviando...';
+                document.getElementById('sendAllBtn').disabled = true;
+            }
+        }
+
+        function sendToAllContacts() {
+            const message = document.getElementById('bulkMessage').value.trim();
+            
+            if (!message) {
+                alert('❌ Digite uma mensagem!');
+                return;
+            }
+
+            if (!isConnected) {
+                alert('❌ Conecte-se ao WhatsApp primeiro!');
+                return;
+            }
+
+            if (allContacts.length === 0) {
+                alert('❌ Nenhum contato disponível!');
+                return;
+            }
+
+            if (confirm(`⚠️ ATENÇÃO! Você está prestes a enviar esta mensagem para TODOS os ${allContacts.length} contatos!\n\nDeseja continuar?`)) {
+                const allNumbers = allContacts.map(c => c.number);
+                
+                ws.send(JSON.stringify({
+                    action: 'sendMessages',
+                    clients: allNumbers,
+                    message: message
+                }));
+
+                document.getElementById('sendBulkBtn').disabled = true;
+                document.getElementById('sendAllBtn').disabled = true;
+                document.getElementById('sendAllBtn').textContent = 'Enviando para todos...';
+            }
+        }
+
+        function formatNumber(number) {
+            if (number.startsWith('55')) {
+                return `+${number.substring(0, 2)} (${number.substring(2, 4)}) ${number.substring(4, 9)}-${number.substring(9)}`;
+            }
+            return number;
+        }
+
+        window.addEventListener('load', function() {
+            console.log('Sistema de Automação WhatsApp Global pronto! 🌍');
+        });
+    </script>
+</body>
+</html>
